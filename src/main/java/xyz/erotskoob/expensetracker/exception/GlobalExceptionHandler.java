@@ -17,23 +17,25 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 import xyz.erotskoob.expensetracker.dto.ErrorDetails;
+import xyz.erotskoob.expensetracker.dto.FieldErrorDetail;
 
 import java.security.SignatureException;
-import java.time.Instant;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private ResponseEntity<ErrorDetails> buildErrorResponse(HttpStatus status, String message) {
+    private ResponseEntity<ErrorDetails> buildErrorResponse(HttpStatus status, String message, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(
-                Instant.now(),
+                status,
                 message,
-                status.value(),
-                status.getReasonPhrase()
+                request.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(errorDetails, status);
     }
 
+    // Validation Exception
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
@@ -41,61 +43,60 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             @NonNull HttpStatusCode status,
             @NonNull WebRequest request) {
 
-        String message = ex.getBindingResult().getAllErrors().get(0).getDefaultMessage();
-
+        List<FieldErrorDetail> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(err -> new FieldErrorDetail(err.getField(), err.getDefaultMessage(), err.getCode()))
+                .collect(Collectors.toList());
         ErrorDetails errorDetails = new ErrorDetails(
-                Instant.now(),
-                message,
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase()
+                HttpStatus.BAD_REQUEST,
+                "Validation failed for one or more fields.",
+                request.getDescription(false).replace("uri=", ""),
+                fieldErrors
         );
-
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ConfigDataResourceNotFoundException.class)
-    public ResponseEntity<ErrorDetails> handleResourceNotFoundException(ConfigDataResourceNotFoundException ex) {
-        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleResourceNotFoundException(ConfigDataResourceNotFoundException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), request);
     }
 
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorDetails> handleBadCredentialException(Exception ex) {
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleBadCredentialException(Exception ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DisabledException.class)
-    public ResponseEntity<ErrorDetails> handleDisabledException(Exception ex) {
-        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage());
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorDetails> handleGlobalException(Exception ex) {
-//        ex.printStackTrace();
-        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleDisabledException(Exception ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.FORBIDDEN, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ResourceExistedException.class)
-    public ResponseEntity<ErrorDetails> handleResourceExistedException(ResourceExistedException ex) {
-        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleResourceExistedException(ResourceExistedException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<ErrorDetails> handleBadRequestException(BadRequestException ex) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleBadRequestException(BadRequestException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<ErrorDetails> handleExpiredJwtException(ExpiredJwtException ex) {
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleExpiredJwtException(ExpiredJwtException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler({SignatureException.class, MalformedJwtException.class, UnsupportedJwtException.class})
-    public ResponseEntity<ErrorDetails> handleInvalidJwtExceptions(Exception ex) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleInvalidJwtExceptions(Exception ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+    public ResponseEntity<ErrorDetails> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorDetails> handleGlobalException(Exception ex, WebRequest request) {
+        return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), request);
     }
 }

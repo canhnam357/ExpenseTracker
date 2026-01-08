@@ -50,7 +50,7 @@ public class AuthServiceImpl implements AuthService {
 
         String accessToken = jwtService.generateAccessToken(userDetail);
 
-        GeneralResponse res = new GeneralResponse(Instant.now(), "Login successfully", 200, accessToken);
+        GeneralResponse<String> res = new GeneralResponse<>(Instant.now(), "Login successfully", 200, accessToken);
 
         String refreshToken = jwtService.generateRefreshToken(userDetail);
 

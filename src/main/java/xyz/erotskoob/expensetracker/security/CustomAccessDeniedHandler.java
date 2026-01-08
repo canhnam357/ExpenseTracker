@@ -12,7 +12,6 @@ import tools.jackson.databind.ObjectMapper;
 import xyz.erotskoob.expensetracker.dto.ErrorDetails;
 
 import java.io.IOException;
-import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
@@ -25,11 +24,11 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                        HttpServletResponse response,
                        @NonNull AccessDeniedException accessDeniedException) throws IOException {
 
+
         ErrorDetails error = new ErrorDetails(
-                Instant.now(),
+                HttpStatus.FORBIDDEN,
                 "Access Denied",
-                HttpStatus.FORBIDDEN.value(),
-                "Forbidden"
+                request.getRequestURI()
         );
 
         response.setContentType("application/json;charset=UTF-8");

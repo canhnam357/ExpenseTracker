@@ -12,7 +12,6 @@ import tools.jackson.databind.ObjectMapper;
 import xyz.erotskoob.expensetracker.dto.ErrorDetails;
 
 import java.io.IOException;
-import java.time.Instant;
 
 @Component
 @RequiredArgsConstructor
@@ -27,11 +26,11 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
 
         HttpStatus unauthorized = HttpStatus.UNAUTHORIZED;
         String detail = request.getRequestURI() + " requires authentication";
+
         ErrorDetails errorDetails = new ErrorDetails(
-                Instant.now(),
+                HttpStatus.UNAUTHORIZED,
                 detail,
-                unauthorized.value(),
-                "Unauthorized Access"
+                request.getRequestURI()
         );
 
         response.setContentType("application/json;charset=UTF-8");
