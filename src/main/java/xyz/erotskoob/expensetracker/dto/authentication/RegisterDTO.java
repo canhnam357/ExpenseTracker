@@ -1,9 +1,15 @@
 package xyz.erotskoob.expensetracker.dto.authentication;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record RegisterDTO(
+
+        @Email(message = "Invalid email address")
+        @NotBlank(message = "Email cannot be blank")
+        String email,
+
         @NotBlank(message = "Username cannot be blank")
         @Size(min = 6, max = 20, message = "Username must be between 6 and 20 characters")
         String username,

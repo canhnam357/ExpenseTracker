@@ -8,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "application.security.jwt")
 @Data
 public class JwtProperties {
-
     private String secretKey;
     private long accessTokenExpiration;
     private long refreshTokenExpiration;

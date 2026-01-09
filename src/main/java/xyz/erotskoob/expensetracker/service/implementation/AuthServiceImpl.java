@@ -2,6 +2,7 @@ package xyz.erotskoob.expensetracker.service.implementation;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -10,12 +11,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import xyz.erotskoob.expensetracker.constant.Role;
+import xyz.erotskoob.expensetracker.constant.TokenType;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.authentication.LoginDTO;
 import xyz.erotskoob.expensetracker.dto.authentication.RegisterDTO;
 import xyz.erotskoob.expensetracker.entity.RefreshToken;
 import xyz.erotskoob.expensetracker.entity.User;
+import xyz.erotskoob.expensetracker.entity.VerificationToken;
 import xyz.erotskoob.expensetracker.exception.BadRequestException;
 import xyz.erotskoob.expensetracker.exception.ResourceExistedException;
 import xyz.erotskoob.expensetracker.repository.RefreshTokenRepository;
@@ -23,12 +25,16 @@ import xyz.erotskoob.expensetracker.repository.UserRepository;
 import xyz.erotskoob.expensetracker.security.JwtService;
 import xyz.erotskoob.expensetracker.security.UserDetail;
 import xyz.erotskoob.expensetracker.service.AuthService;
+import xyz.erotskoob.expensetracker.service.EmailProducer;
+import xyz.erotskoob.expensetracker.service.TokenService;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZonedDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -36,6 +42,8 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenService tokenService;
+    private final EmailProducer emailService;
 
     @Override
     @Transactional
@@ -80,19 +88,52 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public ResponseEntity<?> register(RegisterDTO request) {
-        if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new ResourceExistedException("User with username: " + request.username() + " already exists");
-        }
         if (!request.password().equals(request.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
-        User user = User.builder()
+        if (userRepository.findByUsername(request.username()).isPresent()) {
+            throw new ResourceExistedException("User with username: " + request.username() + " already exists");
+        }
+
+        // Case when email existed but not verified: NOT IMPLEMENTED
+
+        User newUser = User.builder()
                 .username(request.username())
+                .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .role(Role.ROLE_USER)
-                .enabled(true)
                 .build();
+
+        userRepository.save(newUser);
+
+        VerificationToken token = tokenService.createToken(
+                newUser,
+                TokenType.EMAIL_VERIFICATION
+        );
+
+        emailService.sendEmailVerificationMessage(newUser, token.getToken(), token.getTokenType().getType());
+
+        GeneralResponse<String> res = new GeneralResponse<>(Instant.now(), "Registration successful", 200, "Please check your email to verify your account");
+
+        return ResponseEntity.ok().body(res);
+    }
+
+    @Override
+    public ResponseEntity<?> verifyEmail(String tokenString) {
+        log.info("Verifying email with token: {}", tokenString);
+        VerificationToken token = tokenService.validateToken(
+                tokenString,
+                TokenType.EMAIL_VERIFICATION
+        );
+
+        User user = token.getUser();
+        user.setEnabled(true);
+        user.setEmailVerifiedAt(ZonedDateTime.now());
         userRepository.save(user);
-        return ResponseEntity.ok().build();
+
+        tokenService.markTokenAsUsed(token);
+
+        log.info("User {} verified email successfully", user.getUsername());
+        GeneralResponse<String> res = new GeneralResponse<>(Instant.now(), "Email verified successfully", 200, "You can now login");
+        return ResponseEntity.ok().body(res);
     }
 }
