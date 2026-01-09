@@ -7,4 +7,5 @@ import xyz.erotskoob.expensetracker.dto.authentication.RegisterDTO;
 public interface AuthService {
     ResponseEntity<?> login(LoginDTO loginDTO);
     ResponseEntity<?> register(RegisterDTO registerDTO);
+    ResponseEntity<?> verifyEmail(String tokenString);
 }
