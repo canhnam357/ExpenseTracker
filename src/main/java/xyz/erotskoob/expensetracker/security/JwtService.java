@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,32 +30,35 @@ public class JwtService {
     private long refreshTokenExpiration;
 
 
-    public String generateAccessToken(UserDetail userDetail) {
-        return generateToken(new HashMap<>(), userDetail, accessTokenExpiration, "ACCESS");
+    public String generateAccessToken(UserDetail userDetail, ZonedDateTime now) {
+        return generateToken(new HashMap<>(), userDetail, accessTokenExpiration, "ACCESS", now);
     }
 
-    public String generateRefreshToken(UserDetail userDetail) {
-        return generateToken(new HashMap<>(), userDetail, refreshTokenExpiration, "REFRESH");
+    public String generateRefreshToken(UserDetail userDetail, ZonedDateTime now) {
+        return generateToken(new HashMap<>(), userDetail, refreshTokenExpiration, "REFRESH", now);
     }
-
-
 
     public String generateToken(
             Map<String, Object> extraClaims,
             UserDetail userDetail,
             long expirationTime,
-            String tokenType
+            String tokenType,
+            ZonedDateTime now
     ) {
         extraClaims.put("type", tokenType);
+
+        Date issuedAt = Date.from(now.toInstant());
+        Date expiration = Date.from(now.plusSeconds(expirationTime / 1000).toInstant());
 
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setSubject(userDetail.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .setIssuedAt(issuedAt)
+                .setExpiration(expiration)
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
 
     public String extractUsername(String token) {
