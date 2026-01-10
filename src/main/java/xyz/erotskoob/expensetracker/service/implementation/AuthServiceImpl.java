@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,10 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
-import xyz.erotskoob.expensetracker.dto.authentication.AuthResponse;
-import xyz.erotskoob.expensetracker.dto.authentication.LoginDTO;
-import xyz.erotskoob.expensetracker.dto.authentication.RegisterDTO;
-import xyz.erotskoob.expensetracker.dto.authentication.UserDTO;
+import xyz.erotskoob.expensetracker.dto.authentication.*;
 import xyz.erotskoob.expensetracker.entity.RefreshToken;
 import xyz.erotskoob.expensetracker.entity.User;
 import xyz.erotskoob.expensetracker.entity.VerificationToken;
@@ -116,7 +114,7 @@ public class AuthServiceImpl implements AuthService {
                 emailService.sendEmailVerificationMessage(userSameEmail.get(), token.getToken(), token.getTokenType().getType());
 
                 GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Account with this email existed, please check email for verification!", 204, null);
-                return ResponseEntity.ok().body(res);
+                return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
             }
             throw new ResourceExistedException("Email already exists");
         }
@@ -142,7 +140,7 @@ public class AuthServiceImpl implements AuthService {
 
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Registration successfully, please check your email for verification!", 204, null);
 
-        return ResponseEntity.ok().body(res);
+        return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
     }
 
     @Override
@@ -166,4 +164,45 @@ public class AuthServiceImpl implements AuthService {
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Email verified successfully, now you can login!", 204, null);
         return ResponseEntity.ok().body(res);
     }
+
+    @Override
+    public ResponseEntity<?> forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
+        if (userRepository.findByEmail(forgotPasswordDTO.email()).isEmpty()) {
+            throw new BadRequestException("Email not found");
+        }
+
+        User user = userRepository.findByEmail(forgotPasswordDTO.email()).get();
+
+        VerificationToken token = tokenService.createToken(user, TokenType.PASSWORD_RESET);
+
+        emailService.sendEmailVerificationMessage(user, token.getToken(), token.getTokenType().getType());
+
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Reset password email sent successfully, please check your email for verification!", 204, null);
+
+        return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
+    }
+
+    @Override
+    public ResponseEntity<?> resetPassword(ResetPasswordDTO resetPasswordDTO, String tokenString) {
+
+        if (!resetPasswordDTO.password().equals(resetPasswordDTO.confirmPassword())) {
+            throw new BadRequestException("Passwords do not match");
+        }
+
+        VerificationToken token = tokenService.validateToken(tokenString, TokenType.PASSWORD_RESET);
+
+        User user = token.getUser();
+
+        user.setPassword(passwordEncoder.encode(resetPasswordDTO.password()));
+
+        userRepository.save(user);
+
+        tokenService.markTokenAsUsed(token);
+
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Password reset successfully, now you can login!", 204, null);
+
+        return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
+    }
+
+
 }
