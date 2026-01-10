@@ -5,9 +5,9 @@ import lombok.Getter;
 import java.time.ZonedDateTime;
 
 public enum TokenType {
-    EMAIL_VERIFICATION("Email Verification", 24),
-    PASSWORD_RESET("Password Reset", 1),
-    FORGOT_PASSWORD("Forgot Password", 1);
+    EMAIL_VERIFICATION("EMAIL_VERIFICATION", 24),
+    PASSWORD_RESET("PASSWORD_RESET", 1);
+
     @Getter
     private final String type;
     private final int expiryHours;

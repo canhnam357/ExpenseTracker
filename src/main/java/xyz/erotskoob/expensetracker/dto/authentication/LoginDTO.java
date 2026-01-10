@@ -4,8 +4,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record LoginDTO(
-        @NotBlank(message = "Username cannot be blank")
-        @Size(min = 6, max = 20, message = "Username must be between 6 and 20 characters")
+        @NotBlank(message = "Username/Email cannot be blank")
+        @Size(min = 6, max = 255, message = "Username/Email must be at least 6 characters and at most 255 characters")
         String username,
 
         @NotBlank(message = "Password cannot be blank")

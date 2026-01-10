@@ -15,7 +15,4 @@ import java.util.UUID;
 public interface VerificationTokenRepository extends JpaRepository<VerificationToken, UUID> {
     Optional<VerificationToken> findByToken(String token);
     void deleteByUserAndTokenType(User user, TokenType tokenType);
-    @Modifying
-    @Query("DELETE FROM VerificationToken v WHERE v.expiryDate < :now")
-    void deleteExpiredTokens(@Param("now") ZonedDateTime now);
 }

@@ -6,6 +6,7 @@ import lombok.NonNull;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import xyz.erotskoob.expensetracker.constant.Role;
 import xyz.erotskoob.expensetracker.entity.User;
 
 import java.util.ArrayList;
@@ -34,6 +35,10 @@ public class UserDetail implements UserDetails {
     @Override
     @NonNull
     public String getUsername() { return user.getUsername(); }
+
+    public Role getRole() { return user.getRole(); }
+
+    public String getEmail() { return user.getEmail(); }
 
     @Override
     public boolean isAccountNonExpired() { return true; }
