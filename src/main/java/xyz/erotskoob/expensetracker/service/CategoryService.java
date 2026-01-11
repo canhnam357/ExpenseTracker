@@ -10,4 +10,5 @@ public interface CategoryService {
     ResponseEntity<?> getAllCategories(UUID userId);
     ResponseEntity<?> getCategoryById(UUID categoryId, UUID userId);
     ResponseEntity<?> deleteCategory(UUID categoryId, UUID userId);
+    ResponseEntity<?> updateCategory(UUID categoryId, UUID userId, CreateCategoryRequest createCategoryRequest);
 }

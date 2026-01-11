@@ -42,4 +42,10 @@ public class CategoryController {
         UUID userId = userDetail.getUser().getId();
         return categoryService.deleteCategory(categoryId, userId);
     }
+
+    @PatchMapping("/{categoryId}")
+    public ResponseEntity<?> updateCategory(@PathVariable UUID categoryId, @AuthenticationPrincipal UserDetail userDetail, @Valid @RequestBody CreateCategoryRequest createCategoryRequest) {
+        UUID userId = userDetail.getUser().getId();
+        return categoryService.updateCategory(categoryId, userId, createCategoryRequest);
+    }
 }

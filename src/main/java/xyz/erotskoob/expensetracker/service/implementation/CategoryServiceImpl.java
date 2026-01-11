@@ -41,7 +41,9 @@ public class CategoryServiceImpl implements CategoryService {
                 .build();
         categoryRepository.save(category);
 
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Category created successfully", 201, null);
+        CategoryResponse categoryResponse = new CategoryResponse(category);
+
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Category created successfully", 201, categoryResponse);
 
         return ResponseEntity.status(201).body(res);
     }
@@ -89,5 +91,22 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.deleteCategory(categoryId);
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Category deleted successfully", 204, null);
         return ResponseEntity.status(204).body(res);
+    }
+
+    @Override
+    public ResponseEntity<?> updateCategory(UUID categoryId, UUID userId, CreateCategoryRequest createCategoryRequest) {
+        Optional<User> user = userRepository.findById(userId);
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("User not found");
+        }
+        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+        category.setName(createCategoryRequest.name());
+        categoryRepository.save(category);
+
+        CategoryResponse categoryResponse = new CategoryResponse(category);
+
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Category updated successfully", 200, categoryResponse);
+
+        return ResponseEntity.ok().body(res);
     }
 }
