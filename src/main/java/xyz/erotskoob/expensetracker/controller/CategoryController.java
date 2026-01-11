@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.controller.category;
+package xyz.erotskoob.expensetracker.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -7,7 +7,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
 import xyz.erotskoob.expensetracker.security.UserDetail;
-import xyz.erotskoob.expensetracker.service.CategoryService;
+import xyz.erotskoob.expensetracker.service.ICategoryService;
 
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CategoryController {
 
-    private final CategoryService categoryService;
+    private final ICategoryService categoryService;
 
     @PostMapping("")
     public ResponseEntity<?> createCategory(@Valid @RequestBody CreateCategoryRequest createCategoryRequest,

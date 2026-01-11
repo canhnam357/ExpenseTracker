@@ -5,7 +5,7 @@ import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
 
 import java.util.UUID;
 
-public interface CategoryService {
+public interface ICategoryService {
     ResponseEntity<?> createCategory(CreateCategoryRequest createCategoryRequest, UUID userId);
     ResponseEntity<?> getAllCategories(UUID userId);
     ResponseEntity<?> getCategoryById(UUID categoryId, UUID userId);

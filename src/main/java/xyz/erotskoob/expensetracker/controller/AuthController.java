@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.controller.authentication;
+package xyz.erotskoob.expensetracker.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -8,13 +8,13 @@ import xyz.erotskoob.expensetracker.dto.authentication.ForgotPasswordRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.LoginRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.RegisterRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordRequest;
-import xyz.erotskoob.expensetracker.service.AuthService;
+import xyz.erotskoob.expensetracker.service.IAuthService;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-    private final AuthService authService;
+    private final IAuthService authService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request){

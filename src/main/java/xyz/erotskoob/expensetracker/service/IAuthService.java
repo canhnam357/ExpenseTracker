@@ -6,7 +6,7 @@ import xyz.erotskoob.expensetracker.dto.authentication.LoginRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.RegisterRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordRequest;
 
-public interface AuthService {
+public interface IAuthService {
     ResponseEntity<?> login(LoginRequest loginRequest);
     ResponseEntity<?> register(RegisterRequest registerRequest);
     ResponseEntity<?> verifyEmail(String tokenString);

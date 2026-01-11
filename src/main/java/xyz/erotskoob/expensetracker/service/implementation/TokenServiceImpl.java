@@ -1,15 +1,15 @@
 package xyz.erotskoob.expensetracker.service.implementation;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 import xyz.erotskoob.expensetracker.entity.auth.User;
 import xyz.erotskoob.expensetracker.entity.auth.VerificationToken;
 import xyz.erotskoob.expensetracker.exception.BadRequestException;
 import xyz.erotskoob.expensetracker.repository.VerificationTokenRepository;
-import xyz.erotskoob.expensetracker.service.TokenService;
+import xyz.erotskoob.expensetracker.service.ITokenService;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TokenServiceImpl implements TokenService {
+public class TokenServiceImpl implements ITokenService {
 
     private final VerificationTokenRepository tokenRepository;
 
@@ -61,6 +61,7 @@ public class TokenServiceImpl implements TokenService {
         return token;
     }
     @Override
+    @Transactional
     public void markTokenAsUsed(VerificationToken token) {
         token.setUsed(true);
         token.setUsedDate(ZonedDateTime.now());

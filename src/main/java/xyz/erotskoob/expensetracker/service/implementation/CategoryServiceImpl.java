@@ -1,10 +1,10 @@
 package xyz.erotskoob.expensetracker.service.implementation;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
 import xyz.erotskoob.expensetracker.dto.category.CategoryResponse;
@@ -13,7 +13,7 @@ import xyz.erotskoob.expensetracker.entity.auth.User;
 import xyz.erotskoob.expensetracker.exception.ResourceNotFoundException;
 import xyz.erotskoob.expensetracker.repository.CategoryRepository;
 import xyz.erotskoob.expensetracker.repository.UserRepository;
-import xyz.erotskoob.expensetracker.service.CategoryService;
+import xyz.erotskoob.expensetracker.service.ICategoryService;
 
 import java.time.Instant;
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class CategoryServiceImpl implements CategoryService {
+public class CategoryServiceImpl implements ICategoryService {
 
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
@@ -94,6 +94,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> updateCategory(UUID categoryId, UUID userId, CreateCategoryRequest createCategoryRequest) {
         Optional<User> user = userRepository.findById(userId);
         if (user.isEmpty()) {

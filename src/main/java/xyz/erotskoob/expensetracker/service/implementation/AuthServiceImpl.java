@@ -1,6 +1,5 @@
 package xyz.erotskoob.expensetracker.service.implementation;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.authentication.*;
@@ -25,9 +25,9 @@ import xyz.erotskoob.expensetracker.repository.RefreshTokenRepository;
 import xyz.erotskoob.expensetracker.repository.UserRepository;
 import xyz.erotskoob.expensetracker.security.JwtService;
 import xyz.erotskoob.expensetracker.security.UserDetail;
-import xyz.erotskoob.expensetracker.service.AuthService;
 import xyz.erotskoob.expensetracker.messaging.email.EmailProducer;
-import xyz.erotskoob.expensetracker.service.TokenService;
+import xyz.erotskoob.expensetracker.service.IAuthService;
+import xyz.erotskoob.expensetracker.service.ITokenService;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -37,14 +37,14 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class AuthServiceImpl implements AuthService {
+public class AuthServiceImpl implements IAuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final RefreshTokenRepository refreshTokenRepository;
-    private final TokenService tokenService;
+    private final ITokenService tokenService;
     private final EmailProducer emailService;
 
     @Value("${application.security.jwt.refresh-token-expiration}")
@@ -144,6 +144,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> verifyEmail(String tokenString) {
         log.info("Verifying email with token: {}", tokenString);
 
@@ -166,6 +167,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
         if (userRepository.findByEmail(forgotPasswordRequest.email()).isEmpty()) {
             throw new BadRequestException("Email not found");
@@ -181,6 +183,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> resetPassword(ResetPasswordRequest resetPasswordRequest, String tokenString) {
 
         if (!resetPasswordRequest.password().equals(resetPasswordRequest.confirmPassword())) {

@@ -23,7 +23,6 @@ import java.util.UUID;
         },
         indexes = {
                 @Index(name = "idx_categories_user_id", columnList = "user_id"),
-                @Index(name = "idx_categories_budget_id", columnList = "budget_id"),
                 @Index(name = "idx_categories_is_deleted", columnList = "is_deleted")
         }
 )
@@ -37,9 +36,8 @@ public class Category {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "budget_id")
-    private Budget budget;
+    @ManyToMany(mappedBy = "categories")
+    private List<Budget> budgets = new ArrayList<>();
 
     @Column(nullable = false, length = 100)
     private String name;
