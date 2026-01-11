@@ -3,7 +3,7 @@ package xyz.erotskoob.expensetracker.dto.authentication;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record LoginDTO(
+public record LoginRequest(
         @NotBlank(message = "Username/Email cannot be blank")
         @Size(min = 6, max = 255, message = "Username/Email must be at least 6 characters and at most 255 characters")
         String username,

@@ -5,7 +5,7 @@ import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-import xyz.erotskoob.expensetracker.entity.User;
+import xyz.erotskoob.expensetracker.entity.auth.User;
 import xyz.erotskoob.expensetracker.repository.UserRepository;
 
 @Service

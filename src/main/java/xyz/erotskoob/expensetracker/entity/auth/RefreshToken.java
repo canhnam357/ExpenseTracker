@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.entity;
+package xyz.erotskoob.expensetracker.entity.auth;
 
 import jakarta.persistence.*;
 import lombok.*;

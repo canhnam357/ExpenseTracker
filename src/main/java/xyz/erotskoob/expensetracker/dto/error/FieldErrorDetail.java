@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.dto;
+package xyz.erotskoob.expensetracker.dto.error;
 
 // For validation errors, to be included in a list inside ErrorDetails
 public record FieldErrorDetail(

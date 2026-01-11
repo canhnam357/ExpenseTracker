@@ -1,7 +1,8 @@
-package xyz.erotskoob.expensetracker.entity;
+package xyz.erotskoob.expensetracker.entity.expense;
 
 import jakarta.persistence.*;
 import lombok.*;
+import xyz.erotskoob.expensetracker.entity.auth.User;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

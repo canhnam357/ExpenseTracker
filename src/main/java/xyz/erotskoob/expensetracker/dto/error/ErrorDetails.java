@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.dto;
+package xyz.erotskoob.expensetracker.dto.error;
 
 import java.time.Instant;
 import java.util.List;

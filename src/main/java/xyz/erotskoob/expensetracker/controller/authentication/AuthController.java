@@ -4,10 +4,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import xyz.erotskoob.expensetracker.dto.authentication.ForgotPasswordDTO;
-import xyz.erotskoob.expensetracker.dto.authentication.LoginDTO;
-import xyz.erotskoob.expensetracker.dto.authentication.RegisterDTO;
-import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordDTO;
+import xyz.erotskoob.expensetracker.dto.authentication.ForgotPasswordRequest;
+import xyz.erotskoob.expensetracker.dto.authentication.LoginRequest;
+import xyz.erotskoob.expensetracker.dto.authentication.RegisterRequest;
+import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordRequest;
 import xyz.erotskoob.expensetracker.service.AuthService;
 
 @RestController
@@ -17,12 +17,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginDTO request){
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request){
         return authService.login(request);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterDTO request){
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request){
         return authService.register(request);
     }
 
@@ -32,12 +32,12 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordDTO request){
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request){
         return authService.forgotPassword(request);
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordDTO request, @Valid @RequestParam String token){
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @Valid @RequestParam String token){
         return authService.resetPassword(request, token);
     }
 }

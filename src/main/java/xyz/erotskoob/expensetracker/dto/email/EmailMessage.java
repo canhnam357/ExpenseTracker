@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.dto;
+package xyz.erotskoob.expensetracker.dto.email;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

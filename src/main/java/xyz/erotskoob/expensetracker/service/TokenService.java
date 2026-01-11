@@ -1,8 +1,8 @@
 package xyz.erotskoob.expensetracker.service;
 
 import xyz.erotskoob.expensetracker.constant.TokenType;
-import xyz.erotskoob.expensetracker.entity.User;
-import xyz.erotskoob.expensetracker.entity.VerificationToken;
+import xyz.erotskoob.expensetracker.entity.auth.User;
+import xyz.erotskoob.expensetracker.entity.auth.VerificationToken;
 
 public interface TokenService {
     VerificationToken createToken(User user, TokenType tokenType);

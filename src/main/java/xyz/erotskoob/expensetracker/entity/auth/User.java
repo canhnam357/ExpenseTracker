@@ -1,8 +1,11 @@
-package xyz.erotskoob.expensetracker.entity;
+package xyz.erotskoob.expensetracker.entity.auth;
 
 import jakarta.persistence.*;
 import lombok.*;
 import xyz.erotskoob.expensetracker.constant.Role;
+import xyz.erotskoob.expensetracker.entity.expense.Budget;
+import xyz.erotskoob.expensetracker.entity.expense.Category;
+import xyz.erotskoob.expensetracker.entity.expense.Expense;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;

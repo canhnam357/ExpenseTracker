@@ -16,17 +16,17 @@ import org.springframework.stereotype.Service;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.authentication.*;
-import xyz.erotskoob.expensetracker.entity.RefreshToken;
-import xyz.erotskoob.expensetracker.entity.User;
-import xyz.erotskoob.expensetracker.entity.VerificationToken;
+import xyz.erotskoob.expensetracker.entity.auth.RefreshToken;
+import xyz.erotskoob.expensetracker.entity.auth.User;
+import xyz.erotskoob.expensetracker.entity.auth.VerificationToken;
 import xyz.erotskoob.expensetracker.exception.BadRequestException;
-import xyz.erotskoob.expensetracker.exception.ResourceExistedException;
+import xyz.erotskoob.expensetracker.exception.ResourceAlreadyExistsException;
 import xyz.erotskoob.expensetracker.repository.RefreshTokenRepository;
 import xyz.erotskoob.expensetracker.repository.UserRepository;
 import xyz.erotskoob.expensetracker.security.JwtService;
 import xyz.erotskoob.expensetracker.security.UserDetail;
 import xyz.erotskoob.expensetracker.service.AuthService;
-import xyz.erotskoob.expensetracker.service.EmailProducer;
+import xyz.erotskoob.expensetracker.messaging.email.EmailProducer;
 import xyz.erotskoob.expensetracker.service.TokenService;
 
 import java.time.Duration;
@@ -52,7 +52,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> login(LoginDTO request) {
+    public ResponseEntity<?> login(LoginRequest request) {
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.username(), request.password())
@@ -64,8 +64,8 @@ public class AuthServiceImpl implements AuthService {
         ZonedDateTime now = ZonedDateTime.now();
 
         String accessToken = jwtService.generateAccessToken(userDetail, now);
-        UserDTO userDTO = new UserDTO(userDetail.getUsername(), userDetail.getEmail(), userDetail.getRole().name());
-        AuthResponse authResponse = new AuthResponse(accessToken, "Bearer", userDTO);
+        UserResponse userResponse = new UserResponse(userDetail.getUsername(), userDetail.getEmail(), userDetail.getRole().name());
+        AuthResponse authResponse = new AuthResponse(accessToken, "Bearer", userResponse);
         GeneralResponse<AuthResponse> res = new GeneralResponse<>(Instant.now(), "Login successfully", 200, authResponse);
 
         refreshTokenRepository.revokeRefreshToken(userDetail.getUserId(), now);
@@ -96,7 +96,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> register(RegisterDTO request) {
+    public ResponseEntity<?> register(RegisterRequest request) {
 
         if (!request.password().equals(request.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
@@ -116,11 +116,11 @@ public class AuthServiceImpl implements AuthService {
                 GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Account with this email existed, please check email for verification!", 204, null);
                 return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
             }
-            throw new ResourceExistedException("Email already exists");
+            throw new ResourceAlreadyExistsException("Email already exists");
         }
 
         if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new ResourceExistedException("Username already exists");
+            throw new ResourceAlreadyExistsException("Username already exists");
         }
 
         User newUser = User.builder()
@@ -166,15 +166,13 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> forgotPassword(ForgotPasswordDTO forgotPasswordDTO) {
-        if (userRepository.findByEmail(forgotPasswordDTO.email()).isEmpty()) {
+    public ResponseEntity<?> forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
+        if (userRepository.findByEmail(forgotPasswordRequest.email()).isEmpty()) {
             throw new BadRequestException("Email not found");
         }
 
-        User user = userRepository.findByEmail(forgotPasswordDTO.email()).get();
-
+        User user = userRepository.findByEmail(forgotPasswordRequest.email()).get();
         VerificationToken token = tokenService.createToken(user, TokenType.PASSWORD_RESET);
-
         emailService.sendEmailVerificationMessage(user, token.getToken(), token.getTokenType().getType());
 
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Reset password email sent successfully, please check your email for verification!", 204, null);
@@ -183,21 +181,18 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public ResponseEntity<?> resetPassword(ResetPasswordDTO resetPasswordDTO, String tokenString) {
+    public ResponseEntity<?> resetPassword(ResetPasswordRequest resetPasswordRequest, String tokenString) {
 
-        if (!resetPasswordDTO.password().equals(resetPasswordDTO.confirmPassword())) {
+        if (!resetPasswordRequest.password().equals(resetPasswordRequest.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
 
         VerificationToken token = tokenService.validateToken(tokenString, TokenType.PASSWORD_RESET);
+        tokenService.markTokenAsUsed(token);
 
         User user = token.getUser();
-
-        user.setPassword(passwordEncoder.encode(resetPasswordDTO.password()));
-
+        user.setPassword(passwordEncoder.encode(resetPasswordRequest.password()));
         userRepository.save(user);
-
-        tokenService.markTokenAsUsed(token);
 
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Password reset successfully, now you can login!", 204, null);
 

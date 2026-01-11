@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.service;
+package xyz.erotskoob.expensetracker.messaging.email;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +7,7 @@ import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import xyz.erotskoob.expensetracker.config.RabbitMQConfig;
-import xyz.erotskoob.expensetracker.dto.EmailMessage;
+import xyz.erotskoob.expensetracker.dto.email.EmailMessage;
 
 @Service
 @RequiredArgsConstructor

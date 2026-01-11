@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.service;
+package xyz.erotskoob.expensetracker.messaging.email;
 
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;

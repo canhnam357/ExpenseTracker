@@ -1,4 +1,4 @@
-package xyz.erotskoob.expensetracker.entity;
+package xyz.erotskoob.expensetracker.entity.auth;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
