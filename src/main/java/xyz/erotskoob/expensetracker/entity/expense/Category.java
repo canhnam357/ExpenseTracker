@@ -5,21 +5,19 @@ import lombok.*;
 import xyz.erotskoob.expensetracker.entity.auth.User;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 @Table(
         name = "categories",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"user_id", "name", "budget_id"})
+                @UniqueConstraint(columnNames = {"user_id", "name"})
         },
         indexes = {
                 @Index(name = "idx_categories_user_id", columnList = "user_id"),
@@ -42,9 +40,8 @@ public class Category {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(name = "allocated_amount", precision = 15, scale = 2)
-    @Builder.Default
-    private BigDecimal allocatedAmount = BigDecimal.ZERO;
+    @Column(nullable = false)
+    private String hexColorCode;
 
     @Column(name = "is_deleted", nullable = false)
     @Builder.Default
@@ -58,7 +55,8 @@ public class Category {
 
     // Relationships
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
-    private List<Expense> expenses = new ArrayList<>();
+    @Builder.Default
+    private Set<Expense> expenses = new HashSet<>();
 
     @PrePersist
     protected void onCreate() {
@@ -72,37 +70,10 @@ public class Category {
 
     // Business methods
     @Transient
-    public BigDecimal getTotalSpent() {
-        return expenses.stream()
+    public BigDecimal getTotalAmount() {
+        return new ArrayList<>(expenses).stream()
                 .filter(exp -> !exp.isDeleted())
                 .map(Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-    }
-
-    @Transient
-    public BigDecimal getRemaining() {
-        if (allocatedAmount == null) {
-            return null;
-        }
-        return allocatedAmount.subtract(getTotalSpent());
-    }
-
-    @Transient
-    public Double getSpentPercentage() {
-        if (allocatedAmount == null || allocatedAmount.compareTo(BigDecimal.ZERO) == 0) {
-            return null;
-        }
-        return getTotalSpent()
-                .divide(allocatedAmount, 2, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100))
-                .doubleValue();
-    }
-
-    @Transient
-    public boolean isOverBudget() {
-        if (allocatedAmount == null) {
-            return false;
-        }
-        return getTotalSpent().compareTo(allocatedAmount) > 0;
     }
 }

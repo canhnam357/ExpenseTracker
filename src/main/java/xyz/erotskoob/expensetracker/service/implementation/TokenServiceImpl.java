@@ -40,24 +40,17 @@ public class TokenServiceImpl implements ITokenService {
 
     @Override
     public VerificationToken validateToken(String tokenString, TokenType expectedType) {
-        VerificationToken token = tokenRepository.findByToken(tokenString)
-                .orElseThrow(() -> new BadRequestException("Invalid token"));
+        VerificationToken token = tokenRepository.findByToken(tokenString).orElseThrow(() -> new BadRequestException("Invalid token"));
 
         if (token.getTokenType() != expectedType) {
-            throw new BadRequestException(
-                    "Invalid token type. Expected: " + expectedType +
-                            ", Got: " + token.getTokenType()
-            );
+            throw new BadRequestException("Invalid token type. Expected: " + expectedType + ", Got: " + token.getTokenType());
         }
-
         if (token.isUsed()) {
             throw new BadRequestException("Token already used");
         }
-
         if (token.isExpired()) {
             throw new BadRequestException("Token expired");
         }
-
         return token;
     }
     @Override

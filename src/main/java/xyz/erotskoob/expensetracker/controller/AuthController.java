@@ -4,11 +4,14 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.authentication.ForgotPasswordRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.LoginRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.RegisterRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordRequest;
 import xyz.erotskoob.expensetracker.service.IAuthService;
+
+import java.time.Instant;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,5 +42,14 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @Valid @RequestParam String token){
         return authService.resetPassword(request, token);
+    }
+
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@CookieValue(name = "refreshToken") String refreshToken){
+        if (refreshToken == null) {
+            GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Missing refresh token", 401, null);
+            return ResponseEntity.status(401).body(res);
+        }
+        return authService.refreshToken(refreshToken);
     }
 }

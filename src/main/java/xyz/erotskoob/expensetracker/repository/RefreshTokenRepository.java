@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import xyz.erotskoob.expensetracker.entity.auth.RefreshToken;
 
 import java.time.ZonedDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID> {
@@ -15,4 +16,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, UUID
     @Modifying
     @Transactional
     void revokeRefreshToken(@Param("userId") UUID userId,@Param("now") ZonedDateTime now);
+
+    Optional<RefreshToken> findByUserUsernameAndRevokedIsFalse(String username);
 }

@@ -43,7 +43,7 @@ public class BudgetController {
         return budgetService.deleteBudget(budgetId, userId);
     }
 
-    @PatchMapping("/{budgetId}")
+    @PutMapping("/{budgetId}")
     public ResponseEntity<?> updateBudget(@PathVariable UUID budgetId, @AuthenticationPrincipal UserDetail userDetail, @Valid @RequestBody UpdateBudgetRequest updateBudgetRequest){
         UUID userId = userDetail.getUser().getId();
         return budgetService.updateBudget(budgetId, userId, updateBudgetRequest);

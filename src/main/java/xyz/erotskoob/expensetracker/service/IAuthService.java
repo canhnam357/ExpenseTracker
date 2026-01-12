@@ -12,4 +12,5 @@ public interface IAuthService {
     ResponseEntity<?> verifyEmail(String tokenString);
     ResponseEntity<?> forgotPassword(ForgotPasswordRequest forgotPasswordRequest);
     ResponseEntity<?> resetPassword(ResetPasswordRequest resetPasswordRequest, String tokenString);
+    ResponseEntity<?> refreshToken(String refreshToken);
 }

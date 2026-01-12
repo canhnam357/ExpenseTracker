@@ -7,7 +7,8 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

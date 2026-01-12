@@ -1,17 +1,15 @@
 package xyz.erotskoob.expensetracker.entity.auth;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Entity
-@Data
+@Setter
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

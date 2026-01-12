@@ -43,7 +43,7 @@ public class CategoryController {
         return categoryService.deleteCategory(categoryId, userId);
     }
 
-    @PatchMapping("/{categoryId}")
+    @PutMapping("/{categoryId}")
     public ResponseEntity<?> updateCategory(@PathVariable UUID categoryId, @AuthenticationPrincipal UserDetail userDetail, @Valid @RequestBody CreateCategoryRequest createCategoryRequest) {
         UUID userId = userDetail.getUser().getId();
         return categoryService.updateCategory(categoryId, userId, createCategoryRequest);
