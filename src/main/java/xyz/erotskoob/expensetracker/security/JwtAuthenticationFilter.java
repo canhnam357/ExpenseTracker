@@ -75,7 +75,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        AntPathMatcher pathMatcher = new AntPathMatcher();
-        return pathMatcher.match("/api/auth/**", path);
+        AntPathMatcher matcher = new AntPathMatcher();
+
+        return matcher.match("/api/auth/login", path)
+                || matcher.match("/api/auth/register", path)
+                || matcher.match("/api/auth/verify-email", path)
+                || matcher.match("/api/auth/forgot-password", path)
+                || matcher.match("/api/auth/reset-password", path)
+                || matcher.match("/api/auth/refresh-token", path);
     }
 }

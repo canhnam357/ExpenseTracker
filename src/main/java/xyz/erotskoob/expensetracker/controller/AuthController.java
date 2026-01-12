@@ -3,15 +3,18 @@ package xyz.erotskoob.expensetracker.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.authentication.ForgotPasswordRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.LoginRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.RegisterRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordRequest;
+import xyz.erotskoob.expensetracker.security.UserDetail;
 import xyz.erotskoob.expensetracker.service.IAuthService;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -51,5 +54,11 @@ public class AuthController {
             return ResponseEntity.status(401).body(res);
         }
         return authService.refreshToken(refreshToken);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@AuthenticationPrincipal UserDetail userDetail){
+        UUID userId = userDetail.getUser().getId();
+        return authService.logout(userId);
     }
 }

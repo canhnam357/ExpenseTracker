@@ -34,6 +34,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -60,9 +61,12 @@ public class AuthServiceImpl implements IAuthService {
         );
         UserDetail userDetail = (UserDetail) authentication.getPrincipal();
         if (userDetail == null) {
-            return ResponseEntity.badRequest().body("Invalid username or password");
+            throw new BadRequestException("Invalid username or password");
         }
         ZonedDateTime now = ZonedDateTime.now();
+        User user = userRepository.findByUsername(request.username()).orElseThrow(() -> new BadRequestException("Invalid username or password"));
+        user.setLastLoginAt(now);
+        userRepository.save(user);
         GeneralResponse<AuthResponse> res = new GeneralResponse<>(Instant.now(), "Login successfully!", 200, createAccessToken(userDetail, now));
         ResponseCookie refreshTokenCookie = createRefreshTokenCookie(userDetail, now);
         return ResponseEntity
@@ -149,7 +153,10 @@ public class AuthServiceImpl implements IAuthService {
         VerificationToken token = tokenService.validateToken(tokenString, TokenType.PASSWORD_RESET);
         tokenService.markTokenAsUsed(token);
 
+        ZonedDateTime now = ZonedDateTime.now();
+
         User user = token.getUser();
+        user.setPasswordChangedAt(now);
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.password()));
         userRepository.save(user);
 
@@ -178,6 +185,25 @@ public class AuthServiceImpl implements IAuthService {
                 .ok()
                 .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
                 .body(res);
+    }
+
+    @Override
+    @Transactional
+    public ResponseEntity<?> logout(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AuthenticationException("User not found"));
+        refreshTokenRepository.revokeRefreshToken(user.getId(), ZonedDateTime.now());
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Logout successfully!", 204, null);
+
+        ResponseCookie refreshTokenCookie = ResponseCookie
+                .from("refreshToken", "")
+                .httpOnly(true)
+                .sameSite("Lax")
+                .secure(false)
+                .path("/api/auth/refresh-token")
+                .maxAge(Duration.ofDays(0))
+                .build();
+
+        return ResponseEntity.status(HttpStatusCode.valueOf(204)).header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
     }
 
     AuthResponse createAccessToken(UserDetail userDetail, ZonedDateTime now) {

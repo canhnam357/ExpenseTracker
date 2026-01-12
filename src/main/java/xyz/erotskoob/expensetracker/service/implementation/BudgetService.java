@@ -12,6 +12,7 @@ import xyz.erotskoob.expensetracker.dto.budget.UpdateBudgetRequest;
 import xyz.erotskoob.expensetracker.entity.auth.User;
 import xyz.erotskoob.expensetracker.entity.expense.Budget;
 import xyz.erotskoob.expensetracker.entity.expense.Category;
+import xyz.erotskoob.expensetracker.exception.AuthenticationException;
 import xyz.erotskoob.expensetracker.exception.BadRequestException;
 import xyz.erotskoob.expensetracker.exception.ResourceNotFoundException;
 import xyz.erotskoob.expensetracker.repository.BudgetRepository;
@@ -21,7 +22,6 @@ import xyz.erotskoob.expensetracker.service.IBudgetService;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -36,7 +36,7 @@ public class BudgetService implements IBudgetService {
     @Override
     @Transactional
     public ResponseEntity<?> createBudget(CreateBudgetRequest createBudgetRequest, UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = userRepository.findById(userId).orElseThrow(() -> new AuthenticationException("User not found"));
 
         if (createBudgetRequest.startDate().isAfter(createBudgetRequest.endDate())) {
             throw new BadRequestException("Start date cannot be after end date");
@@ -72,7 +72,7 @@ public class BudgetService implements IBudgetService {
     @Transactional(readOnly = true)
     public ResponseEntity<?> getAllBudgets(UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
+            throw new AuthenticationException("User not found");
         }
         List<Budget> budgetList = budgetRepository.findByUserId(userId);
         List<BudgetResponse> responseList = budgetList.stream().map(BudgetResponse::new).toList();
@@ -84,7 +84,7 @@ public class BudgetService implements IBudgetService {
     @Transactional(readOnly = true)
     public ResponseEntity<?> getBudgetById(UUID budgetId, UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
+            throw new AuthenticationException("User not found");
         }
         Budget budget = budgetRepository.findById(budgetId).orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
         BudgetResponse budgetResponse = new BudgetResponse(budget);
@@ -96,7 +96,7 @@ public class BudgetService implements IBudgetService {
     @Transactional
     public ResponseEntity<?> deleteBudget(UUID budgetId, UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
+            throw new AuthenticationException("User not found");
         }
         Budget budget = budgetRepository.findById(budgetId).orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
         budget.setDeleted(true);
@@ -109,7 +109,7 @@ public class BudgetService implements IBudgetService {
     @Transactional
     public ResponseEntity<?> updateBudget(UUID budgetId, UUID userId, UpdateBudgetRequest updateBudgetRequest) {
         if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
+            throw new AuthenticationException("User not found");
         }
         if (updateBudgetRequest.startDate().isAfter(updateBudgetRequest.endDate())) {
             throw new BadRequestException("Start date cannot be after end date");

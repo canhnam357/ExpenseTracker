@@ -6,6 +6,8 @@ import xyz.erotskoob.expensetracker.dto.authentication.LoginRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.RegisterRequest;
 import xyz.erotskoob.expensetracker.dto.authentication.ResetPasswordRequest;
 
+import java.util.UUID;
+
 public interface IAuthService {
     ResponseEntity<?> login(LoginRequest loginRequest);
     ResponseEntity<?> register(RegisterRequest registerRequest);
@@ -13,4 +15,5 @@ public interface IAuthService {
     ResponseEntity<?> forgotPassword(ForgotPasswordRequest forgotPasswordRequest);
     ResponseEntity<?> resetPassword(ResetPasswordRequest resetPasswordRequest, String tokenString);
     ResponseEntity<?> refreshToken(String refreshToken);
+    ResponseEntity<?> logout(UUID userId);
 }
