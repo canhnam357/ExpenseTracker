@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
+import xyz.erotskoob.expensetracker.dto.category.UpdateCategoryRequest;
 import xyz.erotskoob.expensetracker.security.UserDetail;
 import xyz.erotskoob.expensetracker.service.ICategoryService;
 import xyz.erotskoob.expensetracker.service.IExpenseService;
@@ -30,21 +31,25 @@ public class CategoryController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getAllCategories(@AuthenticationPrincipal UserDetail userDetail, Pageable pageable) {
+    public ResponseEntity<?> getAllCategories(@AuthenticationPrincipal UserDetail userDetail,
+                                              Pageable pageable) {
         UUID userId = userDetail.getUser().getId();
         return categoryService.searchCategories(userId, pageable);
     }
 
     @DeleteMapping("/{categoryId}")
-    public ResponseEntity<?> deleteCategory(@PathVariable UUID categoryId, @AuthenticationPrincipal UserDetail userDetail) {
+    public ResponseEntity<?> deleteCategory(@PathVariable UUID categoryId,
+                                            @AuthenticationPrincipal UserDetail userDetail) {
         UUID userId = userDetail.getUser().getId();
         return categoryService.deleteCategory(userId, categoryId);
     }
 
     @PutMapping("/{categoryId}")
-    public ResponseEntity<?> updateCategory(@PathVariable UUID categoryId, @Valid @RequestBody CreateCategoryRequest createCategoryRequest, @AuthenticationPrincipal UserDetail userDetail) {
+    public ResponseEntity<?> updateCategory(@PathVariable UUID categoryId,
+                                            @Valid @RequestBody UpdateCategoryRequest updateCategoryRequest,
+                                            @AuthenticationPrincipal UserDetail userDetail) {
         UUID userId = userDetail.getUser().getId();
-        return categoryService.updateCategory(userId, categoryId, createCategoryRequest);
+        return categoryService.updateCategory(userId, categoryId, updateCategoryRequest);
     }
 
     @GetMapping("/{categoryId}/expenses")

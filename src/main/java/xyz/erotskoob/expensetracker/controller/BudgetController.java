@@ -21,25 +21,30 @@ public class BudgetController {
     private final IBudgetService budgetService;
 
     @PostMapping("")
-    public ResponseEntity<?> createBudget(@Valid @RequestBody CreateBudgetRequest createBudgetRequest, @AuthenticationPrincipal UserDetail userDetail){
+    public ResponseEntity<?> createBudget(@Valid @RequestBody CreateBudgetRequest createBudgetRequest,
+                                          @AuthenticationPrincipal UserDetail userDetail){
         UUID userId = userDetail.getUser().getId();
         return budgetService.createBudget(createBudgetRequest, userId);
     }
 
     @GetMapping("")
-    public ResponseEntity<?> searchBudgets(@AuthenticationPrincipal UserDetail userDetail, Pageable pageable){
+    public ResponseEntity<?> searchBudgets(@AuthenticationPrincipal UserDetail userDetail,
+                                           Pageable pageable){
         UUID userId = userDetail.getUser().getId();
         return budgetService.searchBudgets(userId, pageable);
     }
 
     @DeleteMapping("/{budgetId}")
-    public ResponseEntity<?> deleteBudget(@PathVariable UUID budgetId, @AuthenticationPrincipal UserDetail userDetail){
+    public ResponseEntity<?> deleteBudget(@PathVariable UUID budgetId,
+                                          @AuthenticationPrincipal UserDetail userDetail){
         UUID userId = userDetail.getUser().getId();
         return budgetService.deleteBudget(budgetId, userId);
     }
 
     @PutMapping("/{budgetId}")
-    public ResponseEntity<?> updateBudget(@PathVariable UUID budgetId, @AuthenticationPrincipal UserDetail userDetail, @Valid @RequestBody UpdateBudgetRequest updateBudgetRequest){
+    public ResponseEntity<?> updateBudget(@PathVariable UUID budgetId,
+                                          @AuthenticationPrincipal UserDetail userDetail,
+                                          @Valid @RequestBody UpdateBudgetRequest updateBudgetRequest){
         UUID userId = userDetail.getUser().getId();
         return budgetService.updateBudget(budgetId, userId, updateBudgetRequest);
     }

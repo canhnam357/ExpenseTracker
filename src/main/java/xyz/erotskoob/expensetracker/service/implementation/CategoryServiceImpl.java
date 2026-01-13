@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
 import xyz.erotskoob.expensetracker.dto.category.CategoryResponse;
+import xyz.erotskoob.expensetracker.dto.category.UpdateCategoryRequest;
 import xyz.erotskoob.expensetracker.entity.expense.Category;
 import xyz.erotskoob.expensetracker.entity.auth.User;
 import xyz.erotskoob.expensetracker.exception.AuthenticationException;
@@ -70,10 +71,10 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> updateCategory(UUID userId, UUID categoryId, CreateCategoryRequest createCategoryRequest) {
+    public ResponseEntity<?> updateCategory(UUID userId, UUID categoryId, UpdateCategoryRequest updateCategoryRequest) {
         Category category = categoryRepository.findByUserIdAndId(userId, categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        category.setName(createCategoryRequest.name());
-        category.setHexColorCode(createCategoryRequest.hexColorCode());
+        category.setName(updateCategoryRequest.name());
+        category.setHexColorCode(updateCategoryRequest.hexColorCode());
         categoryRepository.save(category);
 
         CategoryResponse categoryResponse = new CategoryResponse(category);

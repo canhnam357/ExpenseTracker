@@ -3,9 +3,9 @@ package xyz.erotskoob.expensetracker.security;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import xyz.erotskoob.expensetracker.entity.auth.User;
+import xyz.erotskoob.expensetracker.exception.AuthenticationException;
 import xyz.erotskoob.expensetracker.repository.UserRepository;
 
 @Service
@@ -15,9 +15,9 @@ public class UserDetailService implements UserDetailsService {
 
     @Override
     @NonNull
-    public UserDetail loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
+    public UserDetail loadUserByUsername(@NonNull String username) {
         User user = userRepository.findByUsernameOrEmail(username)
-                .orElseThrow(() -> new UsernameNotFoundException("Not found User with username: " + username));
+                .orElseThrow(() -> new AuthenticationException("Not found User with username: " + username));
         return new UserDetail(user);
     }
 }

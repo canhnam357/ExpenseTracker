@@ -64,7 +64,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorDetails> handleBadCredentialException(Exception ex, WebRequest request) {
-        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
     }
 
     @ExceptionHandler(DisabledException.class)
@@ -89,7 +89,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler({SignatureException.class, MalformedJwtException.class, UnsupportedJwtException.class})
     public ResponseEntity<ErrorDetails> handleInvalidJwtExceptions(Exception ex, WebRequest request) {
-        return buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+        return buildErrorResponse(HttpStatus.UNAUTHORIZED, ex.getMessage(), request);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

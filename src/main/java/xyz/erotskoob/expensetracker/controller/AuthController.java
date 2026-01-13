@@ -17,19 +17,19 @@ import java.time.Instant;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final IAuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest request){
-        return authService.login(request);
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequest loginRequest){
+        return authService.login(loginRequest);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest request){
-        return authService.register(request);
+    public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest){
+        return authService.register(registerRequest);
     }
 
     @PostMapping("/verify-email")
@@ -38,13 +38,14 @@ public class AuthController {
     }
 
     @PostMapping("/forgot-password")
-    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request){
-        return authService.forgotPassword(request);
+    public ResponseEntity<?> forgotPassword(@Valid @RequestBody ForgotPasswordRequest forgotPasswordRequest){
+        return authService.forgotPassword(forgotPasswordRequest);
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @Valid @RequestParam String token){
-        return authService.resetPassword(request, token);
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest resetPasswordRequest,
+                                           @Valid @RequestParam String token){
+        return authService.resetPassword(resetPasswordRequest, token);
     }
 
     @PostMapping("/refresh-token")

@@ -1,8 +1,6 @@
 package xyz.erotskoob.expensetracker.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.MalformedJwtException;
-import io.jsonwebtoken.UnsupportedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,8 +26,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     @Override
-    protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain)
-            throws ServletException, IOException, ExpiredJwtException, IllegalArgumentException, MalformedJwtException, UnsupportedJwtException {
+    protected void doFilterInternal(@NonNull HttpServletRequest request,
+                                    @NonNull HttpServletResponse response,
+                                    @NonNull FilterChain filterChain)
+            throws ServletException, IOException, IllegalArgumentException {
 
         final String accessToken = extractJwtFromHeader(request);
         if (accessToken == null) {
@@ -77,11 +77,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         AntPathMatcher matcher = new AntPathMatcher();
 
-        return matcher.match("/api/auth/login", path)
-                || matcher.match("/api/auth/register", path)
-                || matcher.match("/api/auth/verify-email", path)
-                || matcher.match("/api/auth/forgot-password", path)
-                || matcher.match("/api/auth/reset-password", path)
-                || matcher.match("/api/auth/refresh-token", path);
+        return matcher.match("/api/v1/auth/login", path)
+                || matcher.match("/api/v1/auth/register", path)
+                || matcher.match("/api/v1/auth/verify-email", path)
+                || matcher.match("/api/v1/auth/forgot-password", path)
+                || matcher.match("/api/v1/auth/reset-password", path)
+                || matcher.match("/api/v1/auth/refresh-token", path);
     }
 }

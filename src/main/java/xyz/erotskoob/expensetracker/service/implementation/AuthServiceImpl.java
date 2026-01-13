@@ -2,7 +2,6 @@ package xyz.erotskoob.expensetracker.service.implementation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseCookie;
@@ -13,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import xyz.erotskoob.expensetracker.config.JwtProperties;
 import xyz.erotskoob.expensetracker.constant.TokenType;
 import xyz.erotskoob.expensetracker.dto.GeneralResponse;
 import xyz.erotskoob.expensetracker.dto.authentication.*;
@@ -48,11 +48,18 @@ public class AuthServiceImpl implements IAuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final ITokenService tokenService;
     private final EmailProducer emailService;
-
-    @Value("${application.security.jwt.refresh-token-expiration}")
-    private long refreshTokenExpiration;
+    private final JwtProperties jwtProperties;
 
 
+    /**
+     * Authenticates a user based on the provided login request, updates the user's last login time,
+     * generates an access token and a refresh token, and returns the response entity containing
+     * the authentication details.
+     *
+     * @param request the login request containing the username and password
+     * @return a ResponseEntity containing the authentication response and refresh token cookie
+     * @throws BadRequestException if the username or password is invalid
+     */
     @Override
     @Transactional
     public ResponseEntity<?> login(LoginRequest request) {
@@ -64,15 +71,12 @@ public class AuthServiceImpl implements IAuthService {
             throw new BadRequestException("Invalid username or password");
         }
         ZonedDateTime now = ZonedDateTime.now();
-        User user = userRepository.findByUsername(request.username()).orElseThrow(() -> new BadRequestException("Invalid username or password"));
+        User user = userDetail.getUser();
         user.setLastLoginAt(now);
         userRepository.save(user);
         GeneralResponse<AuthResponse> res = new GeneralResponse<>(Instant.now(), "Login successfully!", 200, createAccessToken(userDetail, now));
         ResponseCookie refreshTokenCookie = createRefreshTokenCookie(userDetail, now);
-        return ResponseEntity
-                .ok()
-                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(res);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
     }
 
     @Override
@@ -134,7 +138,6 @@ public class AuthServiceImpl implements IAuthService {
         if (userRepository.findByEmail(forgotPasswordRequest.email()).isEmpty()) {
             throw new BadRequestException("Email not found");
         }
-
         User user = userRepository.findByEmail(forgotPasswordRequest.email()).get();
         VerificationToken token = tokenService.createToken(user, TokenType.PASSWORD_RESET);
         emailService.sendEmailVerificationMessage(user, token.getToken(), token.getTokenType().getType());
@@ -145,23 +148,17 @@ public class AuthServiceImpl implements IAuthService {
     @Override
     @Transactional
     public ResponseEntity<?> resetPassword(ResetPasswordRequest resetPasswordRequest, String tokenString) {
-
         if (!resetPasswordRequest.password().equals(resetPasswordRequest.confirmPassword())) {
             throw new BadRequestException("Passwords do not match");
         }
-
         VerificationToken token = tokenService.validateToken(tokenString, TokenType.PASSWORD_RESET);
         tokenService.markTokenAsUsed(token);
-
         ZonedDateTime now = ZonedDateTime.now();
-
         User user = token.getUser();
         user.setPasswordChangedAt(now);
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.password()));
         userRepository.save(user);
-
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Password reset successfully, now you can login!", 204, null);
-
         return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
     }
 
@@ -181,10 +178,7 @@ public class AuthServiceImpl implements IAuthService {
         ZonedDateTime now = ZonedDateTime.now();
         ResponseCookie refreshTokenCookie = createRefreshTokenCookie(userDetail, now);
         GeneralResponse<AuthResponse> res = new GeneralResponse<>(Instant.now(), "Refresh Token successfully!", 200, createAccessToken(userDetail, now));
-        return ResponseEntity
-                .ok()
-                .header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString())
-                .body(res);
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
     }
 
     @Override
@@ -193,7 +187,6 @@ public class AuthServiceImpl implements IAuthService {
         User user = userRepository.findById(userId).orElseThrow(() -> new AuthenticationException("User not found"));
         refreshTokenRepository.revokeRefreshToken(user.getId(), ZonedDateTime.now());
         GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Logout successfully!", 204, null);
-
         ResponseCookie refreshTokenCookie = ResponseCookie
                 .from("refreshToken", "")
                 .httpOnly(true)
@@ -202,7 +195,6 @@ public class AuthServiceImpl implements IAuthService {
                 .path("/api/auth/refresh-token")
                 .maxAge(Duration.ofDays(0))
                 .build();
-
         return ResponseEntity.status(HttpStatusCode.valueOf(204)).header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
     }
 
@@ -215,7 +207,7 @@ public class AuthServiceImpl implements IAuthService {
     ResponseCookie createRefreshTokenCookie(UserDetail userDetail, ZonedDateTime now) {
         refreshTokenRepository.revokeRefreshToken(userDetail.getUserId(), now);
         String refreshToken = jwtService.generateRefreshToken(userDetail, now);
-        ZonedDateTime expiryDate = now.plusSeconds(refreshTokenExpiration / 1000);
+        ZonedDateTime expiryDate = now.plusSeconds(jwtProperties.getRefreshTokenExpiration() / 1000);
         RefreshToken refreshToken_db = RefreshToken.builder()
                 .token(refreshToken)
                 .user(userDetail.getUser())
@@ -223,7 +215,6 @@ public class AuthServiceImpl implements IAuthService {
                 .expiryDate(expiryDate)
                 .build();
         refreshTokenRepository.save(refreshToken_db);
-
         return ResponseCookie
                 .from("refreshToken", refreshToken)
                 .httpOnly(true)

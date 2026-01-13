@@ -6,8 +6,9 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import xyz.erotskoob.expensetracker.config.JwtProperties;
 
 import java.security.Key;
 import java.time.ZonedDateTime;
@@ -18,24 +19,17 @@ import java.util.function.Function;
 
 @Service
 @Data
+@RequiredArgsConstructor
 public class JwtService {
 
-    @Value("${application.security.jwt.secret-key}")
-    private String secretKey;
-
-    @Value("${application.security.jwt.access-token-expiration}")
-    private long accessTokenExpiration;
-
-    @Value("${application.security.jwt.refresh-token-expiration}")
-    private long refreshTokenExpiration;
-
+    private final JwtProperties jwtProperties;
 
     public String generateAccessToken(UserDetail userDetail, ZonedDateTime now) {
-        return generateToken(new HashMap<>(), userDetail, accessTokenExpiration, "ACCESS", now);
+        return generateToken(new HashMap<>(), userDetail, jwtProperties.getAccessTokenExpiration(), "ACCESS", now);
     }
 
     public String generateRefreshToken(UserDetail userDetail, ZonedDateTime now) {
-        return generateToken(new HashMap<>(), userDetail, refreshTokenExpiration, "REFRESH", now);
+        return generateToken(new HashMap<>(), userDetail, jwtProperties.getRefreshTokenExpiration(), "REFRESH", now);
     }
 
     public String generateToken(
@@ -98,7 +92,7 @@ public class JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.getSecretKey());
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

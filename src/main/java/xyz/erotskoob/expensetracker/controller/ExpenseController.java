@@ -22,19 +22,24 @@ public class ExpenseController {
     private final ExpenseService expenseService;
 
     @PostMapping("/{categoryId}")
-    public ResponseEntity<?> createExpense(@AuthenticationPrincipal UserDetail userDetail, @PathVariable UUID categoryId, @Valid @RequestBody CreateExpenseRequest createExpenseRequest){
+    public ResponseEntity<?> createExpense(@AuthenticationPrincipal UserDetail userDetail,
+                                           @PathVariable UUID categoryId,
+                                           @Valid @RequestBody CreateExpenseRequest createExpenseRequest){
         UUID userId = userDetail.getUser().getId();
         return expenseService.createExpense(userId, categoryId, createExpenseRequest);
     }
 
     @DeleteMapping("/{expenseId}")
-    public ResponseEntity<?> deleteExpense(@AuthenticationPrincipal UserDetail userDetail, @PathVariable UUID expenseId){
+    public ResponseEntity<?> deleteExpense(@AuthenticationPrincipal UserDetail userDetail,
+                                           @PathVariable UUID expenseId){
         UUID userId = userDetail.getUser().getId();
         return expenseService.deleteExpense(expenseId, userId);
     }
 
     @PutMapping("/{expenseId}")
-    public ResponseEntity<?> updateExpense(@AuthenticationPrincipal UserDetail userDetail, @PathVariable UUID expenseId, @Valid @RequestBody UpdateExpenseRequest updateExpenseRequest){
+    public ResponseEntity<?> updateExpense(@AuthenticationPrincipal UserDetail userDetail,
+                                           @PathVariable UUID expenseId,
+                                           @Valid @RequestBody UpdateExpenseRequest updateExpenseRequest){
         UUID userId = userDetail.getUser().getId();
         return expenseService.updateExpense(expenseId, userId, updateExpenseRequest);
     }

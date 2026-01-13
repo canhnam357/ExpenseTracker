@@ -1,8 +1,6 @@
 package xyz.erotskoob.expensetracker.security;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NonNull;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +12,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Setter
+@Getter
 @AllArgsConstructor
 public class UserDetail implements UserDetails {
     private User user;
