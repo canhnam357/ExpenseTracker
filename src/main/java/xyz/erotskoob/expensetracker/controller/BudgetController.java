@@ -3,6 +3,7 @@ package xyz.erotskoob.expensetracker.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -26,15 +27,9 @@ public class BudgetController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getAllBudgets(@AuthenticationPrincipal UserDetail userDetail){
+    public ResponseEntity<?> searchBudgets(@AuthenticationPrincipal UserDetail userDetail, Pageable pageable){
         UUID userId = userDetail.getUser().getId();
-        return budgetService.getAllBudgets(userId);
-    }
-
-    @GetMapping("/{budgetId}")
-    public ResponseEntity<?> getBudgetById(@PathVariable UUID budgetId, @AuthenticationPrincipal UserDetail userDetail){
-        UUID userId = userDetail.getUser().getId();
-        return budgetService.getBudgetById(budgetId, userId);
+        return budgetService.searchBudgets(userId, pageable);
     }
 
     @DeleteMapping("/{budgetId}")

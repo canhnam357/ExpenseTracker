@@ -30,7 +30,7 @@ public class EmailConsumer {
             String messageBody = (message.getType().equals("EMAIL_VERIFICATION") ? "Verify your account" : "Reset your password");
             int hourExpiration = (message.getType().equals("EMAIL_VERIFICATION") ? 24 : 1);
             String buttonText = (message.getType().equals("EMAIL_VERIFICATION") ? "Verify Account" : "Reset Password");
-            String verifyUrl = frontendUrl + url + "?token=" + message.getToken();
+            String verifyUrl =  url + "?token=" + message.getToken();
 
             String htmlContent = emailService.buildEmailTemplate(
                     subject,

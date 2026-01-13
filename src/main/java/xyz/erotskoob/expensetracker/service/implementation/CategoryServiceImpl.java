@@ -2,6 +2,8 @@ package xyz.erotskoob.expensetracker.service.implementation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,13 +12,13 @@ import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
 import xyz.erotskoob.expensetracker.dto.category.CategoryResponse;
 import xyz.erotskoob.expensetracker.entity.expense.Category;
 import xyz.erotskoob.expensetracker.entity.auth.User;
+import xyz.erotskoob.expensetracker.exception.AuthenticationException;
 import xyz.erotskoob.expensetracker.exception.ResourceNotFoundException;
 import xyz.erotskoob.expensetracker.repository.CategoryRepository;
 import xyz.erotskoob.expensetracker.repository.UserRepository;
 import xyz.erotskoob.expensetracker.service.ICategoryService;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -29,8 +31,8 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> createCategory(CreateCategoryRequest createCategoryRequest, UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public ResponseEntity<?> createCategory(UUID userId, CreateCategoryRequest createCategoryRequest) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new AuthenticationException("User not found"));
         Category category = Category.builder()
                 .name(createCategoryRequest.name())
                 .user(user)
@@ -47,34 +49,17 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<?> getAllCategories(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
-        }
-        List<Category> categoryList = categoryRepository.findAll();
-        List<CategoryResponse> responseList = categoryList.stream().map(CategoryResponse::new).toList();
-        GeneralResponse<List<CategoryResponse>> res = new GeneralResponse<>(Instant.now(), "Categories fetched successfully", 200, responseList);
-        return ResponseEntity.ok().body(res);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public ResponseEntity<?> getCategoryById(UUID categoryId, UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
-        }
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
-        GeneralResponse<CategoryResponse> res = new GeneralResponse<>(Instant.now(), "Category fetched successfully", 200, new CategoryResponse(category));
+    public ResponseEntity<?> searchCategories(UUID userId, Pageable pageable) {
+        Page<Category> categoryList = categoryRepository.findAllByUserId(userId, pageable);
+        Page<CategoryResponse> responseList = categoryList.map(CategoryResponse::new);
+        GeneralResponse<Page<CategoryResponse>> res = new GeneralResponse<>(Instant.now(), "Categories fetched successfully", 200, responseList);
         return ResponseEntity.ok().body(res);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<?> deleteCategory(UUID categoryId, UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
-        }
-        if (!categoryRepository.existsById(categoryId)) {
+    public ResponseEntity<?> deleteCategory(UUID userId, UUID categoryId) {
+        if (!categoryRepository.existsByIdAndUserId(userId, categoryId)) {
             throw new ResourceNotFoundException("Category not found");
         }
 
@@ -85,11 +70,8 @@ public class CategoryServiceImpl implements ICategoryService {
 
     @Override
     @Transactional
-    public ResponseEntity<?> updateCategory(UUID categoryId, UUID userId, CreateCategoryRequest createCategoryRequest) {
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found");
-        }
-        Category category = categoryRepository.findById(categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+    public ResponseEntity<?> updateCategory(UUID userId, UUID categoryId, CreateCategoryRequest createCategoryRequest) {
+        Category category = categoryRepository.findByUserIdAndId(userId, categoryId).orElseThrow(() -> new ResourceNotFoundException("Category not found"));
         category.setName(createCategoryRequest.name());
         category.setHexColorCode(createCategoryRequest.hexColorCode());
         categoryRepository.save(category);

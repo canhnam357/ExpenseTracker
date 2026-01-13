@@ -1,14 +1,14 @@
 package xyz.erotskoob.expensetracker.service;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import xyz.erotskoob.expensetracker.dto.category.CreateCategoryRequest;
 
 import java.util.UUID;
 
 public interface ICategoryService {
-    ResponseEntity<?> createCategory(CreateCategoryRequest createCategoryRequest, UUID userId);
-    ResponseEntity<?> getAllCategories(UUID userId);
-    ResponseEntity<?> getCategoryById(UUID categoryId, UUID userId);
-    ResponseEntity<?> deleteCategory(UUID categoryId, UUID userId);
-    ResponseEntity<?> updateCategory(UUID categoryId, UUID userId, CreateCategoryRequest createCategoryRequest);
+    ResponseEntity<?> createCategory(UUID userId, CreateCategoryRequest createCategoryRequest);
+    ResponseEntity<?> searchCategories(UUID userId, Pageable pageable);
+    ResponseEntity<?> deleteCategory(UUID userId, UUID categoryId);
+    ResponseEntity<?> updateCategory(UUID userId, UUID categoryId, CreateCategoryRequest createCategoryRequest);
 }

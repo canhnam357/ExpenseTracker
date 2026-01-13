@@ -2,6 +2,8 @@ package xyz.erotskoob.expensetracker.service.implementation;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,33 +72,18 @@ public class BudgetService implements IBudgetService {
 
     @Override
     @Transactional(readOnly = true)
-    public ResponseEntity<?> getAllBudgets(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new AuthenticationException("User not found");
-        }
-        List<Budget> budgetList = budgetRepository.findByUserId(userId);
-        List<BudgetResponse> responseList = budgetList.stream().map(BudgetResponse::new).toList();
-        GeneralResponse<List<BudgetResponse>> res = new GeneralResponse<>(Instant.now(), "Budgets fetched successfully", 200, responseList);
-        return ResponseEntity.ok().body(res);
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public ResponseEntity<?> getBudgetById(UUID budgetId, UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new AuthenticationException("User not found");
-        }
-        Budget budget = budgetRepository.findById(budgetId).orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
-        BudgetResponse budgetResponse = new BudgetResponse(budget);
-        GeneralResponse<BudgetResponse> res = new GeneralResponse<>(Instant.now(), "Budget fetched successfully", 200, budgetResponse);
+    public ResponseEntity<?> searchBudgets(UUID userId, Pageable pageable) {
+        Page<Budget> budgetList = budgetRepository.findByUserId(userId, pageable);
+        Page<BudgetResponse> responseList = budgetList.map(BudgetResponse::new);
+        GeneralResponse<Page<BudgetResponse>> res = new GeneralResponse<>(Instant.now(), "Budgets fetched successfully", 200, responseList);
         return ResponseEntity.ok().body(res);
     }
 
     @Override
     @Transactional
     public ResponseEntity<?> deleteBudget(UUID budgetId, UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new AuthenticationException("User not found");
+        if (!budgetRepository.existsByUserIdAndId(userId, budgetId)) {
+            throw new ResourceNotFoundException("Budget not found");
         }
         Budget budget = budgetRepository.findById(budgetId).orElseThrow(() -> new ResourceNotFoundException("Budget not found"));
         budget.setDeleted(true);
@@ -108,8 +95,8 @@ public class BudgetService implements IBudgetService {
     @Override
     @Transactional
     public ResponseEntity<?> updateBudget(UUID budgetId, UUID userId, UpdateBudgetRequest updateBudgetRequest) {
-        if (!userRepository.existsById(userId)) {
-            throw new AuthenticationException("User not found");
+        if (!budgetRepository.existsByUserIdAndId(userId, budgetId)) {
+            throw new ResourceNotFoundException("Budget not found");
         }
         if (updateBudgetRequest.startDate().isAfter(updateBudgetRequest.endDate())) {
             throw new BadRequestException("Start date cannot be after end date");
