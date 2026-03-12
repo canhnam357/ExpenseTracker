@@ -79,6 +79,18 @@ public class AuthServiceImpl implements IAuthService {
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
     }
 
+    /**
+     * Registers a new user in the system. This method validates the provided {@link RegisterRequest},
+     * checks for email and username conflicts, and processes the registration by saving the user
+     * and sending an email verification message.
+     *
+     * @param request the request object containing the registration details, including email,
+     *                username, password, and confirmation password
+     * @return a {@link ResponseEntity} containing a response message and status code
+     * @throws BadRequestException if the provided passwords do not match
+     * @throws ResourceAlreadyExistsException if the email or username already exists
+     *                                        in the system
+     */
     @Override
     @Transactional
     public ResponseEntity<?> register(RegisterRequest request) {
@@ -93,8 +105,8 @@ public class AuthServiceImpl implements IAuthService {
                         TokenType.EMAIL_VERIFICATION
                 );
                 emailService.sendEmailVerificationMessage(userSameEmail.get(), token.getToken(), token.getTokenType().getType());
-                GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Account with this email existed, please check email for verification!", 204, null);
-                return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
+                GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Account with this email existed, please check email for verification! Username may be different with username you type, you can login with email!", 200, null);
+                return ResponseEntity.status(HttpStatusCode.valueOf(200)).body(res);
             }
             throw new ResourceAlreadyExistsException("Email already exists");
         }
@@ -112,8 +124,8 @@ public class AuthServiceImpl implements IAuthService {
                 TokenType.EMAIL_VERIFICATION
         );
         emailService.sendEmailVerificationMessage(newUser, token.getToken(), token.getTokenType().getType());
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Registration successfully, please check your email for verification!", 204, null);
-        return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Registration successfully, please check your email for verification!", 201, null);
+        return ResponseEntity.status(HttpStatusCode.valueOf(201)).body(res);
     }
 
     @Override
@@ -128,7 +140,7 @@ public class AuthServiceImpl implements IAuthService {
         user.setEmailVerifiedAt(ZonedDateTime.now());
         userRepository.save(user);
         tokenService.markTokenAsUsed(token);
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Email verified successfully, now you can login!", 204, null);
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Email verified successfully, now you can login!", 200, null);
         return ResponseEntity.ok().body(res);
     }
 
@@ -141,8 +153,8 @@ public class AuthServiceImpl implements IAuthService {
         User user = userRepository.findByEmail(forgotPasswordRequest.email()).get();
         VerificationToken token = tokenService.createToken(user, TokenType.PASSWORD_RESET);
         emailService.sendEmailVerificationMessage(user, token.getToken(), token.getTokenType().getType());
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Reset password email sent successfully, please check your email for verification!", 204, null);
-        return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Reset password email sent successfully, please check your email for verification!", 200, null);
+        return ResponseEntity.status(HttpStatusCode.valueOf(200)).body(res);
     }
 
     @Override
@@ -158,8 +170,8 @@ public class AuthServiceImpl implements IAuthService {
         user.setPasswordChangedAt(now);
         user.setPassword(passwordEncoder.encode(resetPasswordRequest.password()));
         userRepository.save(user);
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Password reset successfully, now you can login!", 204, null);
-        return ResponseEntity.status(HttpStatusCode.valueOf(204)).body(res);
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Password reset successfully, now you can login!", 200, null);
+        return ResponseEntity.status(HttpStatusCode.valueOf(200)).body(res);
     }
 
     @Override
@@ -186,16 +198,16 @@ public class AuthServiceImpl implements IAuthService {
     public ResponseEntity<?> logout(UUID userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new AuthenticationException("User not found"));
         refreshTokenRepository.revokeRefreshToken(user.getId(), ZonedDateTime.now());
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Logout successfully!", 204, null);
+        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Logout successfully!", 200, null);
         ResponseCookie refreshTokenCookie = ResponseCookie
                 .from("refreshToken", "")
                 .httpOnly(true)
                 .sameSite("Lax")
                 .secure(false)
-                .path("/api/auth/refresh-token")
+                .path("/")
                 .maxAge(Duration.ofDays(0))
                 .build();
-        return ResponseEntity.status(HttpStatusCode.valueOf(204)).header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
+        return ResponseEntity.status(HttpStatusCode.valueOf(200)).header(HttpHeaders.SET_COOKIE, refreshTokenCookie.toString()).body(res);
     }
 
     AuthResponse createAccessToken(UserDetail userDetail, ZonedDateTime now) {
@@ -220,7 +232,7 @@ public class AuthServiceImpl implements IAuthService {
                 .httpOnly(true)
                 .sameSite("Lax")
                 .secure(false)
-                .path("/api/auth/refresh-token")
+                .path("/")
                 .maxAge(Duration.ofDays(7))
                 .build();
     }

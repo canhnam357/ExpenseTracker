@@ -73,8 +73,8 @@ public class ExpenseService implements IExpenseService {
         }
         Expense expense = expenseRepository.findById(expenseId).orElseThrow(() -> new ResourceNotFoundException("Expense not found"));
         expense.setDeleted(true);
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Expense deleted successfully", 204, null);
-        return ResponseEntity.status(204).body(res);
+        expenseRepository.save(expense);
+        return ResponseEntity.noContent().build();
     }
 
     @Override

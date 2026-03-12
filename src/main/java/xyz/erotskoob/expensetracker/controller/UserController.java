@@ -23,7 +23,7 @@ public class UserController {
         return userService.getProfile(userId);
     }
 
-    @PostMapping("/change-password")
+    @PutMapping("/change-password")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal UserDetail userDetail,
                                             @Valid @RequestBody ChangePasswordRequest changePasswordRequest){
         UUID userId = userDetail.getUserId();

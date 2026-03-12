@@ -65,8 +65,7 @@ public class CategoryServiceImpl implements ICategoryService {
         }
 
         categoryRepository.deleteCategory(categoryId);
-        GeneralResponse<Object> res = new GeneralResponse<>(Instant.now(), "Category deleted successfully", 204, null);
-        return ResponseEntity.status(204).body(res);
+        return ResponseEntity.noContent().build();
     }
 
     @Override
